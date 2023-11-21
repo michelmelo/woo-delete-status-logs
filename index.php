@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Woo Delete Status Logs for WooCommerce
- * Plugin URI: https://michelmelo.pt/woo-delete-status-logs/
+ * Plugin URI: https://github.com/michelmelo/woo-delete-status-logs
  * Description: This plugin deletes WooCommerce status log files automatically after a time period specified by the administrator.
  * Version:1.0.0
  * Author:michelmelo
