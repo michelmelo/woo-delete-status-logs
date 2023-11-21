@@ -1,18 +1,15 @@
 <?php
 /**
  * Plugin Name: Woo Delete Status Logs for WooCommerce
- * Plugin URI: https://github.com/michelmelo/woo-delete-status-logs
+ * Plugin URI: https://michelmelo.pt/woo-delete-status-logs/
  * Description: This plugin deletes WooCommerce status log files automatically after a time period specified by the administrator.
  * Version:1.0.0
  * Author:michelmelo
- * Author URI:https://michelmelo.pt/woo-delete-status-logs/
+ * Author URI:https://michelmelo.pt/woo-delete-status-logs/.
  */
-
 function woo_delete_statuslogs_activation_logic()
 {
-
-    if (!is_plugin_active('woocommerce/woocommerce.php'))
-    {
+    if (! is_plugin_active('woocommerce/woocommerce.php')) {
         deactivate_plugins(plugin_basename(__FILE__));
         wp_die(__('Auto Delete status Logs for WooCommerce requires WooCommerce Plugin in order for it to work properly!', 'wooautodelete'));
     }
@@ -22,41 +19,35 @@ register_activation_hook(__FILE__, 'woo_delete_statuslogs_activation_logic');
 add_filter('cron_schedules', 'woo_delete_statuslogs_add_every_twentyfour_hours');
 function woo_delete_statuslogs_add_every_twentyfour_hours($schedules)
 {
-    $schedules['every_twentyfour_hours'] = array(
+    $schedules['every_twentyfour_hours'] = [
         'interval' => 86400,
-        'display' => __('Every Day', 'wooautodelete')
-    );
+        'display'  => __('Every Day', 'wooautodelete'),
+    ];
+
     return $schedules;
 }
 
 // Schedule an action if it's not already scheduled
-if (!wp_next_scheduled('woo_delete_statuslogs_add_every_twentyfour_hours'))
-{
-    wp_schedule_event(time() , 'every_twentyfour_hours', 'woo_delete_statuslogs_add_every_twentyfour_hours');
+if (! wp_next_scheduled('woo_delete_statuslogs_add_every_twentyfour_hours')) {
+    wp_schedule_event(time(), 'every_twentyfour_hours', 'woo_delete_statuslogs_add_every_twentyfour_hours');
 }
 /*
  ** calculate datetime
  * @package  Woo Delete Status Logs for WooCommerce
  * @since 1.1.1
 */
-if (!function_exists('woo_delete_statuslogs_remove_files_from_dir_older_than_seven_days'))
-{
+if (! function_exists('woo_delete_statuslogs_remove_files_from_dir_older_than_seven_days')) {
     function woo_delete_statuslogs_remove_files_from_dir_older_than_seven_days($dir, $seconds = 3600)
     {
         //$files = glob(rtrim($dir, '/')."/webhooks-delivery-*");
-        $files = glob(rtrim($dir, '/') . "/*.log");
-        $now = time();
-        foreach ($files as $file)
-        {
-            if (is_file($file))
-            {
-                if ($now - filemtime($file) >= $seconds)
-                {
+        $files = glob(rtrim($dir, '/') . '/*.log');
+        $now   = time();
+        foreach ($files as $file) {
+            if (is_file($file)) {
+                if ($now - filemtime($file) >= $seconds) {
                     unlink($file);
                 }
-            }
-            else
-            {
+            } else {
                 woo_delete_statuslogs_remove_files_from_dir_older_than_seven_days($file, $seconds);
             }
         }
@@ -71,6 +62,7 @@ function woo_delete_statuslogs_settings_link($links)
 {
     $settings_link = '<a href="options-general.php?page=sys-autodelete-statuslogs-setting">Settings</a>';
     array_unshift($links, $settings_link);
+
     return $links;
 }
 $plugin = plugin_basename(__FILE__);
@@ -84,22 +76,19 @@ add_filter("plugin_action_links_$plugin", 'woo_delete_statuslogs_settings_link')
 add_action('woo_delete_statuslogs_add_every_twentyfour_hours', 'woo_delete_statuslogs_every_twentyfour_hours_event_func');
 function woo_delete_statuslogs_every_twentyfour_hours_event_func()
 {
-    $uploads = wp_upload_dir();
+    $uploads     = wp_upload_dir();
     $upload_path = $uploads['basedir'];
-    $dir = $upload_path . '/wc-logs/';
+    $dir         = $upload_path . '/wc-logs/';
 
-    $sys_autodelete_intervaldays = (int)get_option('sys_autodelete_intervaldays');
-    $week_days = 1;
-    if (!empty($sys_autodelete_intervaldays))
-    {
+    $sys_autodelete_intervaldays = (int) get_option('sys_autodelete_intervaldays');
+    $week_days                   = 1;
+
+    if (! empty($sys_autodelete_intervaldays)) {
         $total_days = $sys_autodelete_intervaldays;
-    }
-    else
-    {
+    } else {
         $total_days = $week_days;
     }
     remove_files_from_dir_older_than_seven_days($dir, (60 * 60 * 24 * $total_days)); // 1 day
-    
 }
 
 /*
@@ -110,23 +99,17 @@ function woo_delete_statuslogs_every_twentyfour_hours_event_func()
 
 function woo_delete_statuslogs_atonce()
 {
-
     $log_dir = WC_LOG_DIR;
 
-    foreach (scandir($log_dir) as $file)
-    {
-
+    foreach (scandir($log_dir) as $file) {
         $path = pathinfo($file);
         // Only delete log files, don't delete the test.log file
-        if ($path['extension'] === 'log' && $path['filename'] !== 'test-log')
-        {
+        if ($path['extension'] === 'log' && $path['filename'] !== 'test-log') {
             unlink("{$log_dir}/{$file}");
         }
-
     }
 
     // return __('Log files deleted', 'sysautodelete');
-    
 }
 /*
  ** option page of Auto Delete Status Logs
@@ -164,7 +147,7 @@ function woo_delete_statuslogs_options_page()
     echo "<form action=' " . woo_delete_statuslogs_atonce() . "' method='post'>";
     echo '<input type="hidden" name="action" value="my_action">';
     echo '<input type="submit" class="sysautodelete-clearbtn" value="Clear All" onclick="sysautodelete_showMessage()">';
-    echo '</form> </div>'; 
+    echo '</form> </div>';
 
     ?>
        
@@ -172,4 +155,3 @@ function woo_delete_statuslogs_options_page()
 function sysautodelete_showMessage() { alert("Status Logs Cleared");}</script>
     <?php
 }
-
